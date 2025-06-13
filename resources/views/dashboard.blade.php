@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - B Laundry</title>
-    
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -46,14 +46,14 @@
                     <p>Track your laundry orders</p>
                     <a href="{{ route('orders') }}" class="btn btn-primary">View Orders</a>
                 </div>
-                
+
                 <div class="dashboard-card">
                     <i class="fas fa-user"></i>
                     <h3>Profile</h3>
                     <p>Manage your account settings</p>
                     <a href="{{ route('profile.show') }}" class="btn btn-primary">Edit Profile</a>
                 </div>
-                
+
                 <div class="dashboard-card">
                     <i class="fas fa-history"></i>
                     <h3>Order History</h3>

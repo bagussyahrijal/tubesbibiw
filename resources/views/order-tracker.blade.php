@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B Laundry Laundry - Track Order</title>
-    <link rel="stylesheet" href="order-tracker.css">
+        @vite(['resources/css/order-tracker.css', 'resources/js/app.js'])
+
 </head>
 <body>
     <!-- Navbar -->
@@ -56,7 +57,7 @@
             <a href="orders.html" class="back-link">
                 <i class="fas fa-arrow-left"></i> Back to My Orders
             </a>
-            
+
             <div class="page-header">
                 <h1 class="page-title"><i class="fas fa-truck"></i> Track Order</h1>
             </div>
@@ -84,7 +85,7 @@
                     <div class="timeline-progress">
                         <div class="timeline-progress-bar" style="height: 60%;"></div>
                     </div>
-                    
+
                     <div class="timeline-item completed">
                         <div class="timeline-icon">
                             <i class="fas fa-check"></i>
@@ -95,7 +96,7 @@
                             <div class="timeline-description">Your laundry has been collected from your address</div>
                         </div>
                     </div>
-                    
+
                     <div class="timeline-item completed">
                         <div class="timeline-icon">
                             <i class="fas fa-check"></i>
@@ -106,7 +107,7 @@
                             <div class="timeline-description">Your items have arrived at our cleaning facility</div>
                         </div>
                     </div>
-                    
+
                     <div class="timeline-item active">
                         <div class="timeline-icon">
                             <i class="fas fa-spinner"></i>
@@ -117,7 +118,7 @@
                             <div class="timeline-description">Your items are being cleaned and processed</div>
                         </div>
                     </div>
-                    
+
                     <div class="timeline-item">
                         <div class="timeline-icon">
                             <i class="fas fa-tshirt"></i>
@@ -128,7 +129,7 @@
                             <div class="timeline-description">Your items will undergo final inspection</div>
                         </div>
                     </div>
-                    
+
                     <div class="timeline-item">
                         <div class="timeline-icon">
                             <i class="fas fa-truck"></i>
@@ -146,7 +147,7 @@
                     <div class="details-title">
                         <i class="fas fa-info-circle"></i> Order Details
                     </div>
-                    
+
                     <div class="details-grid">
                         <div class="detail-card">
                             <div class="detail-label">Pickup Address</div>
@@ -165,11 +166,11 @@
                             <div class="detail-value">Leave with doorman if not home</div>
                         </div>
                     </div>
-                    
+
                     <div class="details-title">
                         <i class="fas fa-concierge-bell"></i> Services
                     </div>
-                    
+
                     <div class="service-items">
                         <div class="service-item">
                             <div class="service-info">
@@ -196,7 +197,7 @@
                             <div class="service-price">$6.00</div>
                         </div>
                     </div>
-                    
+
                     <div class="order-total">
                         <div class="total-label">Total:</div>
                         <div class="total-value">$28.50</div>
@@ -220,11 +221,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             // In a real application, this would fetch order tracking data from an API
             // and update the timeline progress bar accordingly
-            
+
             // Example of updating progress bar based on order status
             const orderStatus = 'processing'; // This would come from your data
             let progressPercentage = 0;
-            
+
             switch(orderStatus) {
                 case 'pending':
                     progressPercentage = 10;
@@ -238,7 +239,7 @@
                 default:
                     progressPercentage = 0;
             }
-            
+
             document.querySelector('.timeline-progress-bar').style.height = `${progressPercentage}%`;
         });
     </script>

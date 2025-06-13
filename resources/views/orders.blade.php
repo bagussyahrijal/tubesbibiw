@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders - B Laundry</title>
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
+    @vite(['resources/css/orders.css', 'resources/js/app.js'])
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -133,7 +133,7 @@
                             </div>
                             <span class="order-status {{ $order->status_color }}">{{ $order->status_label }}</span>
                         </div>
-                        
+
                         <div class="order-body">
                             <div class="order-details">
                                 @if($order->items->count() > 0)
@@ -173,7 +173,7 @@
                                     </div>
                                 @endif
                             </div>
-                            
+
                             <div class="order-timeline">
                                 <div class="timeline-item {{ $order->created_at ? 'completed' : '' }}">
                                     <h4>Order Placed</h4>
@@ -225,16 +225,16 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="order-footer">
                             <div class="order-total">Total: ${{ number_format($order->total_amount, 2) }}</div>
                             <div class="order-actions">
                                 <a href="{{ route('orders.show', $order->order_number) }}" class="action-btn outline">
                                     <i class="fas fa-search"></i> Track Order
                                 </a>
-                                
+
                                 @if(in_array($order->status, ['pending', 'pickup_scheduled']))
-                                    <form method="POST" action="{{ route('orders.cancel', $order) }}" style="display: inline;" 
+                                    <form method="POST" action="{{ route('orders.cancel', $order) }}" style="display: inline;"
                                           onsubmit="return confirm('Are you sure you want to cancel this order?')">
                                         @csrf
                                         <button type="submit" class="action-btn danger">

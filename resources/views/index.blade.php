@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B Laundry - Dashboard</title>
-    
+
     <!-- Include Laravel CSRF token in meta tag -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
+
     <!-- Use Vite for CSS and JS -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
     <!-- Include Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- Tailwind CDN as fallback -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     @stack('styles')
 </head>
 <body>

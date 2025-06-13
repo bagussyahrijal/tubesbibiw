@@ -12,25 +12,25 @@ class ScheduleController extends Controller
     public function create(Request $request)
     {
         $user = Auth::user();
-        
+
         // Get addresses that can be used for pickup and delivery
         $pickupAddresses = Address::where('user_id', $user->id)
                                  ->where('pickup_address', true)
                                  ->get();
-        
+
         $deliveryAddresses = Address::where('user_id', $user->id)
                                    ->where('delivery_address', true)
                                    ->get();
-        
+
         // If no specific pickup/delivery addresses, use all addresses
         if ($pickupAddresses->isEmpty()) {
             $pickupAddresses = Address::where('user_id', $user->id)->get();
         }
-        
+
         if ($deliveryAddresses->isEmpty()) {
             $deliveryAddresses = Address::where('user_id', $user->id)->get();
         }
-        
+
         // Check if user is reordering
         $reorderData = null;
         if ($request->has('reorder')) {
@@ -44,7 +44,7 @@ class ScheduleController extends Controller
                 ];
             }
         }
-        
+
         return view('schedule', compact('user', 'pickupAddresses', 'deliveryAddresses', 'reorderData'));
     }
 
@@ -63,7 +63,7 @@ class ScheduleController extends Controller
         // Get addresses
         $pickupAddress = Address::findOrFail($request->pickup_address_id);
         $deliveryAddress = Address::findOrFail($request->delivery_address_id);
-        
+
         // Verify addresses belong to user
         if ($pickupAddress->user_id !== Auth::id() || $deliveryAddress->user_id !== Auth::id()) {
             abort(403, 'Unauthorized access to addresses');
@@ -108,7 +108,7 @@ class ScheduleController extends Controller
     private function generateServiceItems($services)
     {
         $items = [];
-        
+
         // Generate estimated items based on selected services
         foreach ($services as $service) {
             switch ($service) {
@@ -132,7 +132,7 @@ class ScheduleController extends Controller
                     break;
             }
         }
-        
+
         return $items;
     }
 
@@ -141,7 +141,7 @@ class ScheduleController extends Controller
     {
         $date = $request->get('date');
         $type = $request->get('type', 'pickup'); // pickup or delivery
-        
+
         // Define available time slots
         $timeSlots = [
             '08:00-10:00' => '8:00 AM - 10:00 AM',
@@ -151,20 +151,16 @@ class ScheduleController extends Controller
             '16:00-18:00' => '4:00 PM - 6:00 PM',
             '18:00-20:00' => '6:00 PM - 8:00 PM',
         ];
-        
+
         // For delivery, exclude early morning slots
         if ($type === 'delivery') {
             unset($timeSlots['08:00-10:00']);
         }
-        
+
         // Here you could add logic to check availability against existing orders
         // For now, return all slots as available
-        
-        return response()->json([
-            'date' => $date,
-            'type' => $type,
-            'available_slots' => $timeSlots
-        ]);
+
+        return redirect()->route('schedule');
     }
 
     public function calculateEstimate(Request $request)
@@ -172,25 +168,26 @@ class ScheduleController extends Controller
         $services = $request->get('services', []);
         $detergent = $request->get('detergent', 'standard');
         $fabricSoftener = $request->get('fabric_softener', 'none');
-        
+
         $subtotal = $this->calculateSubtotal($services, $detergent, $fabricSoftener);
         $taxAmount = $subtotal * 0.08; // 8% tax
         $deliveryFee = 2.99; // Flat rate
         $totalAmount = $subtotal + $taxAmount + $deliveryFee;
-        
-        return response()->json([
-            'subtotal' => number_format($subtotal, 2),
-            'tax_amount' => number_format($taxAmount, 2),
-            'delivery_fee' => number_format($deliveryFee, 2),
-            'total_amount' => number_format($totalAmount, 2),
-            'estimated_items' => $this->estimateItemCount($services),
-        ]);
+
+        return redirect()->route('schedule.create')
+            ->with([
+                'subtotal' => number_format($subtotal, 2),
+                'tax' => number_format($taxAmount, 2),
+                'delivery_fee' => number_format($deliveryFee, 2),
+                'total' => number_format($totalAmount, 2),
+                'estimated_items' => $this->estimateItemCount($services)
+            ]);
     }
 
     private function calculateSubtotal($services, $detergent = 'standard', $fabricSoftener = 'none')
     {
         $subtotal = 0;
-        
+
         // Base service pricing
         $pricing = [
             'wash-fold' => 25.00,      // Base price for wash & fold
@@ -200,11 +197,11 @@ class ScheduleController extends Controller
             'delicates' => 20.00,      // Base price for delicates
             'bulky-items' => 35.00,    // Base price for bulky items
         ];
-        
+
         foreach ($services as $service) {
             $subtotal += $pricing[$service] ?? 0;
         }
-        
+
         // Add detergent cost
         $detergentPricing = [
             'standard' => 0,
@@ -213,7 +210,7 @@ class ScheduleController extends Controller
             'scent-free' => 1.50,
         ];
         $subtotal += $detergentPricing[$detergent] ?? 0;
-        
+
         // Add fabric softener cost
         $fabricSoftenerPricing = [
             'none' => 0,
@@ -221,7 +218,7 @@ class ScheduleController extends Controller
             'scent-free' => 1.50,
         ];
         $subtotal += $fabricSoftenerPricing[$fabricSoftener] ?? 0;
-        
+
         return $subtotal;
     }
 
@@ -236,12 +233,12 @@ class ScheduleController extends Controller
             'delicates' => 4,
             'bulky-items' => 1,
         ];
-        
+
         $totalItems = 0;
         foreach ($services as $service) {
             $totalItems += $estimates[$service] ?? 0;
         }
-        
+
         return max($totalItems, 1); // At least 1 item
     }
 

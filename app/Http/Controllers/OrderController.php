@@ -14,18 +14,18 @@ class OrderController extends Controller
     {
         $user = Auth::user();
         $status = $request->get('status', 'all');
-        
+
         // Use real data from database
         $query = Order::forUser($user->id)
                      ->with('items')
                      ->orderBy('created_at', 'desc');
-        
+
         if ($status !== 'all') {
             $query->byStatus($status);
         }
-        
+
         $orders = $query->paginate(10);
-        
+
         return view('orders', compact('orders', 'status', 'user'));
     }
 
@@ -35,7 +35,7 @@ class OrderController extends Controller
                      ->forUser(Auth::id())
                      ->with('items')
                      ->firstOrFail();
-        
+
         return view('order-tracker', compact('order'));
     }
 
@@ -49,7 +49,7 @@ class OrderController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
             // Calculate totals
             $subtotal = $this->calculateSubtotal($request->services);
@@ -84,7 +84,7 @@ class OrderController extends Controller
                     foreach ($service['items'] as $item) {
                         $unitPrice = $this->getItemPrice($service['type'], $item['type']);
                         $totalPrice = $unitPrice * $item['quantity'];
-                        
+
                         OrderItem::create([
                             'order_id' => $order->id,
                             'service_type' => $service['type'],
@@ -100,16 +100,12 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Order placed successfully!',
-                'order_number' => $order->order_number,
-                'redirect_url' => route('orders.show', $order->order_number)
-            ]);
+            return redirect()->route('orders.show', $order->order_number)
+                             ->with('success', 'Order placed successfully! Your order number is ' . $order->order_number);
 
         } catch (\Exception $e) {
             DB::rollback();
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to place order. Please try again.',
@@ -136,7 +132,7 @@ class OrderController extends Controller
     private function calculateSubtotal($services)
     {
         $subtotal = 0;
-        
+
         foreach ($services as $service) {
             if (isset($service['items'])) {
                 foreach ($service['items'] as $item) {
@@ -145,7 +141,7 @@ class OrderController extends Controller
                 }
             }
         }
-        
+
         return $subtotal;
     }
 
@@ -245,13 +241,9 @@ class OrderController extends Controller
                       ->orderBy('created_at', 'desc')
                       ->paginate(20);
 
-        return response()->json([
-            'orders' => $orders->items(),
-            'pagination' => [
-                'current_page' => $orders->currentPage(),
-                'last_page' => $orders->lastPage(),
-                'total' => $orders->total()
-            ]
-        ]);
+        return redirect()->route('orders', [
+            'status' => 'all',
+            'orders' => $orders
+        ])->with('success', 'Order history retrieved successfully.');
     }
 }

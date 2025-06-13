@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - B Laundry</title>
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
+    @vite(['resources/css/profile.css', 'resources/js/app.js'])
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -93,7 +93,7 @@
                         </div>
                         <h3 class="profile-name">{{ $user->name }}</h3>
                         <p class="profile-email">{{ $user->email }}</p>
-                        
+
                         <div class="profile-stats">
                             <div class="stat-item">
                                 <div class="stat-value">{{ $totalOrders }}</div>
@@ -104,7 +104,7 @@
                                 <div class="stat-label">Years</div>
                             </div>
                         </div>
-                        
+
                         <div class="profile-actions">
                             <button class="btn btn-primary" onclick="showAvatarModal()">
                                 <i class="fas fa-camera"></i> Change Photo
@@ -124,7 +124,7 @@
                             <h3 class="section-title"><i class="fas fa-info-circle"></i> Personal Information</h3>
                             <span class="section-edit" onclick="showEditModal()">Edit</span>
                         </div>
-                        
+
                         <div class="info-grid">
                             <div class="info-item">
                                 <div class="info-label">First Name</div>
@@ -159,13 +159,13 @@
                             <h3 class="section-title"><i class="fas fa-crown"></i> Membership</h3>
                             <span class="section-edit">Upgrade</span>
                         </div>
-                        
+
                         <div class="membership-card {{ $user->membership_type }}">
                             <div class="membership-header">
                                 <h4 class="membership-title">{{ $user->membership_title }}</h4>
                                 <span class="membership-badge">Active</span>
                             </div>
-                            
+
                             <div class="membership-details">
                                 <p>
                                     @if($user->membership_type === 'premium')
@@ -175,7 +175,7 @@
                                     @endif
                                 </p>
                             </div>
-                            
+
                             <ul class="membership-features">
                                 @if($user->membership_type === 'premium')
                                     <li>15% discount on all orders</li>
@@ -189,7 +189,7 @@
                                     <li>Standard packaging</li>
                                 @endif
                             </ul>
-                            
+
                             <button class="btn btn-outline membership-btn">
                                 @if($user->membership_type === 'premium')
                                     <i class="fas fa-star"></i> Manage Membership
@@ -206,7 +206,7 @@
                             <h3 class="section-title"><i class="fas fa-bell"></i> Notification Preferences</h3>
                             <span class="section-edit">Edit</span>
                         </div>
-                        
+
                         <div class="info-grid">
                             <div class="info-item">
                                 <div class="info-label">Order Status</div>
@@ -251,7 +251,7 @@
             <form action="{{ route('profile.update') }}" method="POST" class="profile-form">
                 @csrf
                 @method('PUT')
-                
+
                 <div class="form-group">
                     <label for="name">Full Name</label>
                     <input type="text" id="name" name="name" class="form-control" value="{{ $user->name }}" required>
@@ -290,7 +290,7 @@
             <form action="{{ route('profile.password') }}" method="POST" class="profile-form">
                 @csrf
                 @method('PUT')
-                
+
                 <div class="form-group">
                     <label for="current_password">Current Password</label>
                     <input type="password" id="current_password" name="current_password" class="form-control" required>
@@ -323,7 +323,7 @@
             </div>
             <form action="{{ route('profile.avatar') }}" method="POST" enctype="multipart/form-data" class="profile-form">
                 @csrf
-                
+
                 <div class="form-group">
                     <label for="avatar">Choose Photo</label>
                     <input type="file" id="avatar" name="avatar" class="form-control" accept="image/*" required>

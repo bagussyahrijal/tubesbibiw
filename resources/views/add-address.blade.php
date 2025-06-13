@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Address - B Laundry</title>
-    
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -65,7 +65,7 @@
             <a href="{{ route('addresses') }}" class="back-link">
                 <i class="fas fa-arrow-left"></i> Back to My Addresses
             </a>
-            
+
             <div class="page-header">
                 <h1 class="page-title"><i class="fas fa-map-marker-alt"></i> Add New Address</h1>
             </div>
@@ -73,11 +73,11 @@
             <div class="address-form">
                 <form action="{{ route('addresses.store') }}" method="POST">
                     @csrf
-                    
+
                     <!-- Address Type Selection -->
                     <div class="form-section">
                         <h2 class="section-title"><i class="fas fa-tag"></i> Address Type</h2>
-                        
+
                         <div class="address-type-tabs">
                             <div class="address-type-tab active" data-type="home">
                                 <i class="fas fa-home"></i> Home
@@ -89,9 +89,9 @@
                                 <i class="fas fa-map-marker-alt"></i> Other
                             </div>
                         </div>
-                        
+
                         <input type="hidden" id="address-type" name="address_type" value="home">
-                        
+
                         <div id="other-type" style="display: none;">
                             <div class="form-group">
                                 <label for="custom-type">Custom Address Name</label>
@@ -99,40 +99,40 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Contact Information -->
                     <div class="form-section">
                         <h2 class="section-title"><i class="fas fa-user"></i> Contact Information</h2>
-                        
+
                         <div class="form-group">
                             <label for="full-name">Full Name</label>
-                            <input type="text" id="full-name" name="full_name" class="form-control" 
+                            <input type="text" id="full-name" name="full_name" class="form-control"
                                    value="{{ Auth::user()->name }}" placeholder="Enter full name" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" class="form-control" 
+                            <input type="tel" id="phone" name="phone" class="form-control"
                                    value="{{ Auth::user()->phone }}" placeholder="Enter phone number" required>
                         </div>
                     </div>
-                    
+
                     <!-- Address Details -->
                     <div class="form-section">
                         <h2 class="section-title"><i class="fas fa-location-arrow"></i> Address Details</h2>
-                        
+
                         <div class="form-group">
                             <label for="address-line1">Address Line 1</label>
-                            <input type="text" id="address-line1" name="address_line1" class="form-control" 
+                            <input type="text" id="address-line1" name="address_line1" class="form-control"
                                    placeholder="Street address, P.O. box, company name" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="address-line2">Address Line 2 (Optional)</label>
-                            <input type="text" id="address-line2" name="address_line2" class="form-control" 
+                            <input type="text" id="address-line2" name="address_line2" class="form-control"
                                    placeholder="Apartment, suite, unit, building, floor, etc.">
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="city">City</label>
@@ -143,7 +143,7 @@
                                 <input type="text" id="state" name="state" class="form-control" placeholder="Enter state" required>
                             </div>
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="zip">ZIP/Postal Code</label>
@@ -159,39 +159,39 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Address Options -->
                     <div class="form-section">
                         <h2 class="section-title"><i class="fas fa-cog"></i> Address Options</h2>
-                        
+
                         <div class="checkbox-group">
                             <input type="checkbox" id="pickup-address" name="pickup_address" class="checkbox-input" checked>
                             <label for="pickup-address">Use for pickup</label>
                         </div>
-                        
+
                         <div class="checkbox-group">
                             <input type="checkbox" id="delivery-address" name="delivery_address" class="checkbox-input" checked>
                             <label for="delivery-address">Use for delivery</label>
                         </div>
-                        
+
                         <div class="checkbox-group">
                             <input type="checkbox" id="default-address" name="default_address" class="checkbox-input">
                             <label for="default-address">Set as default address</label>
                         </div>
                     </div>
-                    
+
                     <!-- Special Instructions -->
                     <div class="form-section">
                         <h2 class="section-title"><i class="fas fa-sticky-note"></i> Special Instructions (Optional)</h2>
-                        
+
                         <div class="form-group">
                             <label for="instructions">Delivery Instructions</label>
-                            <textarea id="instructions" name="instructions" class="form-control" 
-                                      placeholder="e.g., Leave at front door, Ring bell twice, Call upon arrival, etc." 
+                            <textarea id="instructions" name="instructions" class="form-control"
+                                      placeholder="e.g., Leave at front door, Ring bell twice, Call upon arrival, etc."
                                       rows="3"></textarea>
                         </div>
                     </div>
-                    
+
                     <!-- Form Actions -->
                     <div class="form-actions">
                         <a href="{{ route('addresses') }}" class="btn btn-outline">Cancel</a>
@@ -208,18 +208,18 @@
             const addressTypeTabs = document.querySelectorAll('.address-type-tab');
             const addressTypeInput = document.getElementById('address-type');
             const otherTypeSection = document.getElementById('other-type');
-            
+
             addressTypeTabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     // Remove active class from all tabs
                     addressTypeTabs.forEach(t => t.classList.remove('active'));
                     // Add active class to clicked tab
                     this.classList.add('active');
-                    
+
                     // Update hidden input value
                     const type = this.getAttribute('data-type');
                     addressTypeInput.value = type;
-                    
+
                     // Show/hide custom type input
                     if (type === 'other') {
                         otherTypeSection.style.display = 'block';

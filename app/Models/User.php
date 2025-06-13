@@ -24,6 +24,7 @@ class User extends Authenticatable
         'phone',
         'date_of_birth',
         'avatar',
+        'role',
         'membership_type',
         'notifications_email',
         'notifications_sms',
