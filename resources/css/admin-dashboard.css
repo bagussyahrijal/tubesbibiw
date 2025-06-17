@@ -180,10 +180,12 @@ a {
     z-index: 1001; /* Lebih tinggi dari navbar agar tidak tertutup */
     padding: 10px 0;
 }
-
-.dropdown:hover .dropdown-content {
+.dropdown-content.show {
     display: block;
+    opacity: 1;
+    visibility: visible;
 }
+
 
 .dropdown-content a {
     color: var(--dark-color);
@@ -201,6 +203,7 @@ a {
 .dropdown-content a:hover {
     background-color: var(--light-color);
     color: var(--primary-color);
+    cursor: pointer;
 }
 
 /* Dashboard Layout */

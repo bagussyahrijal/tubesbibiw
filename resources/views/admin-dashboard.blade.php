@@ -23,12 +23,17 @@
                 <li><a href="{{ route('admin.users') }}">Manage Users</a></li>
             </ul>
             <div class="user-menu">
-                <div class="dropdown">
-                    <div class="user-avatar">
-                        <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="Admin Avatar">
+                <div class="dropdown" id="userDropdown">
+                    <div class="user-avatar" id="userAvatarToggle"> <img
+                            src="https://randomuser.me/api/portraits/men/46.jpg" alt="Admin Avatar">
                     </div>
-                    <div class="dropdown-content">
-                        <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <div class="dropdown-content" id="userDropdownContent"> <a
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                            @csrf
+                        </form>
                     </div>
                 </div>
             </div>
@@ -56,12 +61,12 @@
             <div class="dashboard-cards">
                 <div class="dashboard-card">
                     <div class="card-header">
-                        <div class="card-title">Total Amount (Overall)</div>
+                        <div class="card-title">Total Revenue (Overall)</div>
                         <div class="card-icon success"><i class="fas fa-wallet"></i></div>
                     </div>
-                    <div class="card-value" id="totalAmountValue">${{ $totalAmount }}</div>
+                    <div class="card-value">Rp{{ number_format($totalFinishedCost, 0, ',', '.') }}
+                    </div>
                 </div>
-
                 <div class="dashboard-card">
                     <div class="card-header">
                         <div class="card-title">Total Orders (Overall)</div>
@@ -69,7 +74,6 @@
                     </div>
                     <div class="card-value" id="totalOrdersValue">{{ $totalOrders }}</div>
                 </div>
-
                 <div class="dashboard-card">
                     <div class="card-header">
                         <div class="card-title">Active Users</div>
@@ -85,7 +89,7 @@
             <div class="charts-grid">
                 <div class="chart-container">
                     <h3 class="chart-title">Order Status Distribution (Overall)</h3>
-                    <canvas id="orderStatusChart"></canvas>
+                    <canvas id="orderStatusChart" class="h-20"></canvas>
                 </div>
                 <div class="chart-container">
                     <h3 class="chart-title">Daily Revenue (Last 7 Days)</h3>
@@ -99,51 +103,23 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>User</th>
-                            <th>Date Placed</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th>Nama Pelanggan</th>
+                            <th>Nomor Telepon</th>
+                            <th>Alamat</th>
+                            <th>Item</th>
+                            <th>Total Cost</th>
+                            <th>Status Order</th>
                         </tr>
                     </thead>
-                    <tbody id="recentOrdersTableBody">
-                        @foreach ($orders as $order)
+                    <tbody>
+                        @foreach ($recentOrders as $order)
                             <tr>
-                                <td>#{{ $order->id }}</td>
-                                <td>{{ $order->user->name ?? '-' }}</td>
-                                <td>{{ $order->created_at->format('M d, Y H:i') }}</td>
-                                <td>
-                                    @php
-                                        // Jika $order->services adalah JSON string, decode dulu
-                                        $servicesArray = is_array($order->services)
-                                            ? $order->services
-                                            : json_decode($order->services, true);
-                                        $serviceItems = isset($servicesArray[0]['items'])
-                                            ? $servicesArray[0]['items']
-                                            : [];
-                                    @endphp
-                                    @if ($serviceItems)
-                                        @foreach ($serviceItems as $item)
-                                            {{ ucwords(str_replace('_', ' ', $item['type'])) }}
-                                            ({{ $item['quantity'] }})
-                                            {{ !$loop->last ? ', ' : '' }}
-                                        @endforeach
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td>${{ number_format($order->total_amount, 2) }}</td>
-                                <td>
-                                    <span
-                                        class="status {{ strtolower($order->status) }}">{{ ucfirst($order->status) }}</span>
-                                </td>
-                                <td>
-                                    <button class="action-btn" title="View Details"><i class="fas fa-eye"></i></button>
-                                    <button class="action-btn" title="Update Status"><i
-                                            class="fas fa-edit"></i></button>
-                                </td>
+                                <td>{{ $order['customerName'] ?? '-' }}</td>
+                                <td>{{ $order['phone'] ?? '-' }}</td>
+                                <td>{{ $order['address'] ?? '-' }}</td>
+                                <td>{{ $order['item'] ?? '-' }}</td>
+                                <td>Rp{{ number_format($order['totalCost'] ?? 0, 0, ',', '.') }}</td>
+                                <td>{{ $order['status'] ?? '-' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -151,215 +127,120 @@
             </div>
         </main>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        const recentOrders = {!! json_encode($recentOrders) !!};
+        console.log('recentOrders:', recentOrders); // Order Status Chart
+        const orderStatusRawData = [{
+                status: 'Payment',
+                count: {{ $statusCounts['Payment'] }},
+                color: '#e67e22'
+            },
+            {
+                status: 'Pending to Process',
+                count: {{ $statusCounts['Pending to Process'] }},
+                color: '#2ecc71'
+            },
+            {
+                status: 'Processed',
+                count: {{ $statusCounts['Processed'] }},
+                color: '#e74c3c'
+            },
+            {
+                status: 'Finished',
+                count: {{ $statusCounts['Finished'] }},
+                color: '#7f8c8d'
+            }
+        ];
+        const statusLabels = orderStatusRawData.map(item => item.status);
+        const statusCounts = orderStatusRawData.map(item => item.count);
+        const statusColors = orderStatusRawData.map(item => item.color);
+
+        const orderStatusChartData = {
+            labels: statusLabels,
+            datasets: [{
+                data: statusCounts,
+                backgroundColor: statusColors
+            }]
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Admin Dashboard (Charts + Firebase Prep) loaded.');
-
-            const orderStatusDetailValue = document.getElementById('orderStatusDetailValue');
-
-            // --- DATA UNTUK GRAFIK (Contoh Statis) ---
-            // Firebase Prep: Order Status Distribution
-            // Data ini akan diagregasi dari collection 'orders' di Firestore.
-            // Anda perlu menghitung jumlah pesanan untuk setiap status yang relevan.
-            // Misal, jika status di DB Anda adalah 'Payment', 'Pending to Process', 'Processed', 'Finished'.
-            // Anda akan memetakannya ke label 'Unpaid', 'Pending', 'Processing', 'Completed' untuk grafik.
-            // const counts = { unpaid: 0, pending: 0, processing: 0, completed: 0 };
-            // const querySnapshot = await getDocs(collection(db, "orders"));
-            // querySnapshot.forEach((doc) => {
-            //   const status = doc.data().status;
-            //   if (status === 'Payment') counts.unpaid++;
-            //   else if (status === 'Pending to Process') counts.pending++;
-            //   else if (status === 'Processed') counts.processing++;
-            //   else if (status === 'Finished') counts.completed++;
-            // });
-            // const orderStatusRawData = [
-            //   { status: 'Unpaid', count: counts.unpaid, color: '#6c757d' },
-            //   { status: 'Pending', count: counts.pending, color: '#ffc107' },
-            //   { status: 'Processing', count: counts.processing, color: '#007bff' },
-            //   { status: 'Completed', count: counts.completed, color: '#28a745' }
-            // ];
-            // Kemudian gunakan orderStatusRawData untuk chart.
-            const orderStatusRawData = [{
-                    status: 'Pending',
-                    count: {{ $statusCounts['Pending'] }},
-                    color: '#e67e22'
-                },
-                {
-                    status: 'Paid',
-                    count: {{ $statusCounts['Paid'] }},
-                    color: '#2ecc71'
-                },
-                {
-                    status: 'Failed',
-                    count: {{ $statusCounts['Failed'] }},
-                    color: '#e74c3c'
-                },
-                {
-                    status: 'Refunded',
-                    count: {{ $statusCounts['Refunded'] }},
-                    color: '#7f8c8d'
-                }
-            ];
-
-            // Siapkan data untuk Chart.js
-            const statusLabels = orderStatusRawData.map(item => item.status);
-            const statusCounts = orderStatusRawData.map(item => item.count);
-            const statusColors = orderStatusRawData.map(item => item.color);
-
-            // Pie Chart untuk Order Status
-            const ctx = document.getElementById('orderStatusChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: statusLabels,
-                    datasets: [{
-                        data: statusCounts,
-                        backgroundColor: statusColors
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
+            const ctxStatus = document.getElementById('orderStatusChart');
+            if (ctxStatus) {
+                new Chart(ctxStatus.getContext('2d'), {
+                    type: 'doughnut',
+                    data: orderStatusChartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
                         }
                     }
-                }
-            });
-
-            // Firebase Prep: Daily Revenue (Last 7 Days)
-            // Data ini memerlukan agregasi dari 'orders' yang statusnya 'Finished' (atau lunas)
-            // dikelompokkan per hari untuk 7 hari terakhir.
-            // Ini lebih kompleks dan idealnya dilakukan oleh backend/Cloud Function yang menyimpan
-            // agregasi harian, atau Anda mengambil data order 7 hari terakhir lalu proses di client.
-            // const revenueByDay = {}; // { 'YYYY-MM-DD': totalRevenue }
-            // const sevenDaysAgo = new Date();
-            // sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            // const q = query(collection(db, "orders"),
-            //                 where("completionDate", ">=", sevenDaysAgo), // asumsikan ada field completionDate (Timestamp)
-            //                 where("status", "==", "Finished"));
-            // const querySnapshot = await getDocs(q);
-            // querySnapshot.forEach((doc) => {
-            //   const order = doc.data();
-            //   const day = new Date(order.completionDate.seconds * 1000).toISOString().split('T')[0];
-            //   revenueByDay[day] = (revenueByDay[day] || 0) + order.totalCost;
-            // });
-            // // Kemudian format revenueByDay menjadi struktur labels dan data untuk chart.
-            const dailyRevenueData = {
-                labels: ['May 27', 'May 28', 'May 29', 'May 30', 'May 31', 'Jun 1', 'Jun 2'],
-                datasets: [{
-                    label: 'Revenue ($)',
-                    data: [1500, 2000, 1800, 2200, 2500, 3000, 1750],
-                    borderColor: '#e74c3c', // var(--danger-color)
-                    backgroundColor: 'rgba(231, 76, 60, 0.1)', // rgba dari var(--danger-color)
-                    tension: 0.2,
-                    fill: true,
-                    pointBackgroundColor: '#e74c3c',
-                    pointBorderColor: '#fff',
-                    pointHoverRadius: 7,
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: '#e74c3c'
-                }]
-            };
-
-            // --- Initialize Charts ---
-            try {
-                const ctxOrderStatus = document.getElementById('orderStatusPieChart');
-                if (ctxOrderStatus) {
-                    new Chart(ctxOrderStatus.getContext('2d'), {
-                        type: 'doughnut',
-                        data: orderStatusChartData,
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            cutout: '60%',
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        padding: 15,
-                                        usePointStyle: true,
-                                        pointStyle: 'circle',
-                                        font: {
-                                            size: 11
-                                        }
-                                    }
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: context => `${context.label}: ${context.formattedValue}`
-                                    }
-                                }
-                            },
-                            onHover: (event, chartElement) => {
-                                const canvas = event.native ? event.native.target : event.target;
-                                if (chartElement.length && orderStatusDetailValue) {
-                                    const index = chartElement[0].index;
-                                    orderStatusDetailValue.textContent =
-                                        `${orderStatusChartData.labels[index]}: ${orderStatusChartData.datasets[0].data[index]}`;
-                                    canvas.style.cursor = 'pointer';
-                                } else if (orderStatusDetailValue) {
-                                    orderStatusDetailValue.textContent =
-                                        '- Hover on chart for details -';
-                                    canvas.style.cursor = 'default';
-                                }
-                            }
-                        }
-                    });
-                }
-
-                const ctxDailyRevenue = document.getElementById('dailyRevenueChart');
-                if (ctxDailyRevenue) {
-                    new Chart(ctxDailyRevenue.getContext('2d'), {
-                        type: 'line',
-                        data: dailyRevenueData,
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {
-                                    beginAtZero: false,
-                                    ticks: {
-                                        callback: value => '$' + (value / 1000) + 'K'
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: context =>
-                                            `Revenue: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(context.parsed.y)}`
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            } catch (e) {
-                console.error("Error initializing charts:", e);
+                });
             }
 
-            // Firebase Prep: Untuk mengisi nilai summary cards di atas (Total Revenue, Total Orders, Active Users)
-            // Anda akan mengambil data dari Firestore dan mengupdate elemen HTML yang sesuai.
-            // Contoh (ambil dari data statis untuk sekarang):
-            // const totalRevenueValueEl = document.getElementById('totalRevenueValue');
-            // const totalOrdersValueEl = document.getElementById('totalOrdersValue');
-            // const activeUsersValueEl = document.getElementById('activeUsersValue');
-            // if(totalRevenueValueEl) totalRevenueValueEl.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(78500); // Ganti dengan data Firebase
-            // if(totalOrdersValueEl) totalOrdersValueEl.textContent = (orderStatusRawData.reduce((sum, item) => sum + item.count, 0)).toLocaleString('en-US'); // Jumlah dari status chart
-            // if(activeUsersValueEl) activeUsersValueEl.textContent = '157'; // Ganti dengan data Firebase
+            // Daily Revenue Chart
+            const dailyRevenueLabels = {!! json_encode(collect($dailyRevenue)->pluck('date')->map(fn($d) => date('M d', strtotime($d)))) !!};
+            const dailyRevenueData = {!! json_encode(collect($dailyRevenue)->pluck('total')) !!};
+
+            const ctxRevenue = document.getElementById('dailyRevenueChart');
+            if (ctxRevenue) {
+                new Chart(ctxRevenue.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: dailyRevenueLabels,
+                        datasets: [{
+                            label: 'Revenue ($)',
+                            data: dailyRevenueData,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            tension: 0.2,
+                            fill: true,
+                            pointBackgroundColor: '#e74c3c',
+                            pointBorderColor: '#fff',
+                            pointHoverRadius: 7,
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#e74c3c'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const userAvatarToggle = document.getElementById('userAvatarToggle');
+            const userDropdownContent = document.getElementById('userDropdownContent');
+            const userDropdown = document.getElementById('userDropdown'); // Tambahkan ini
+
+            if (userAvatarToggle && userDropdownContent) {
+                userAvatarToggle.addEventListener('click', function() {
+                    // Toggle class 'show' untuk menampilkan/menyembunyikan dropdown
+                    userDropdownContent.classList.toggle('show');
+                });
+
+                // Optional: Tutup dropdown saat klik di luar area dropdown
+                document.addEventListener('click', function(event) {
+                    // Periksa apakah klik terjadi di luar elemen .dropdown
+                    if (userDropdown && !userDropdown.contains(event.target)) {
+                        if (userDropdownContent.classList.contains('show')) {
+                            userDropdownContent.classList.remove('show');
+                        }
+                    }
+                });
+            }
         });
     </script>
+
 </body>
 
 </html>
