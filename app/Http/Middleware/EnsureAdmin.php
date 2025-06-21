@@ -10,10 +10,9 @@ class EnsureAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()?->role !== 'admin') {
-            abort(403, 'Unauthorized.');
+        if (session('firebase_role') !== 'admin') {
+            abort(403);
         }
-
         return $next($request);
     }
 }

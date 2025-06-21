@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Controllers\AdminController;
+use App\Http\Middleware\FirebaseSession;
 
 Route::get('/', function () {
     return view('login');
@@ -20,7 +21,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/password/request', [AuthController::class, 'showPasswordRequest'])->name('password.request');
 
-Route::middleware(['auth', EnsureAdmin::class])->group(function () {
+Route::middleware([FirebaseSession::class, EnsureAdmin::class])->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/manageusers', [AdminController::class, 'manageUsers'])->name('admin.users');
     Route::post('/admin/manageusers', [AdminController::class, 'store'])->name('admin.users.store');

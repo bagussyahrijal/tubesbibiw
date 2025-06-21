@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Kreait\Firebase\Auth as FirebaseAuth;
+use Kreait\Firebase\Exception\Auth\InvalidPassword;
+use Kreait\Firebase\Exception\Auth\UserNotFound;
 
 class AuthController extends Controller
 {
@@ -48,32 +51,70 @@ class AuthController extends Controller
     }
 
     // Handle login
+    // public function login(Request $request)
+    // {
+    //     $request->validate([
+    //         'email' => 'required|email',
+    //         'password' => 'required',
+    //     ]);
+
+    //     $credentials = $request->only('email', 'password');
+    //     $remember = $request->filled('remember');
+
+    //     if (Auth::attempt($credentials, $remember)) {
+    //         $request->session()->regenerate();
+    //         return redirect()->route('admin.dashboard');
+    //     }
+
+    //     return back()->withErrors([
+    //         'email' => 'The provided credentials do not match our records.',
+    //     ])->onlyInput('email');
+    // }
+
+
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        $firebase = app(FirebaseAuth::class);
+        $firestore = app('firebase.firestore');
 
-        $credentials = $request->only('email', 'password');
-        $remember = $request->filled('remember');
+        try {
+            $signInResult = $firebase->signInWithEmailAndPassword($request->email, $request->password);
+            $firebaseUser = $firebase->getUserByEmail($request->email);
 
-        if (Auth::attempt($credentials, $remember)) {
-            $request->session()->regenerate();
+            // Ambil data user dari Firestore
+            $userDoc = $firestore->collection('users')->document($firebaseUser->uid)->snapshot();
+            $userData = $userDoc->exists() ? $userDoc->data() : [];
+
+            // Simpan data user ke session
+            session([
+                'firebase_uid' => $firebaseUser->uid,
+                'firebase_email' => $firebaseUser->email,
+                'firebase_name' => $userData['name'] ?? $firebaseUser->displayName ?? $firebaseUser->email,
+                'firebase_role' => $userData['role']
+            ]);
+
             return redirect()->route('admin.dashboard');
+        } catch (InvalidPassword | UserNotFound $e) {
+            return back()->withErrors([
+                'email' => 'Email atau password salah.',
+            ])->onlyInput('email');
+        } catch (\Throwable $e) {
+            return back()->withErrors([
+                'email' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ])->onlyInput('email');
         }
-
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
     }
 
-    // Handle logout
-    public function logout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect()->route('home');
-    }
+public function logout(Request $request)
+{
+    $request->session()->flush();
+    return redirect()->route('home');
+}
+//     public function logout(Request $request)
+//     {
+//         Auth::logout();
+//         $request->session()->invalidate();
+//         $request->session()->regenerateToken();
+//         return redirect()->route('home');
+//     }
 }
